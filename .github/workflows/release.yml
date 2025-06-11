@@ -17,10 +17,10 @@ jobs:
             extension: .exe
     steps:
       - name: Checkout code
-        uses: actions/checkout@latest
+        uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@latest
+        uses: actions/setup-go@v5
         with:
           go-version: '1.24'
 
@@ -40,7 +40,7 @@ jobs:
           chmod +x dist/gits-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.extension || '' }}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@latest
+        uses: actions/upload-artifact@v4
         with:
           name: gits-${{ matrix.goos }}-${{ matrix.goarch }}
           path: dist/gits-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.extension || '' }}
@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@latest
+        uses: actions/download-artifact@v4
         with:
           path: dist
 
@@ -61,7 +61,7 @@ jobs:
           find dist -type f -name "gits-*" -exec cp {} release/ \;
 
       - name: Create Release
-        uses: softprops/action-gh-release@latest
+        uses: softprops/action-gh-release@v2
         with:
           files: release/*
           draft: false
