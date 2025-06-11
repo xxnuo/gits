@@ -4,8 +4,11 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/melbahja/goph"
+	"golang.org/x/crypto/ssh"
+	"golang.org/x/term"
 )
 
 var (
@@ -58,20 +61,43 @@ func main() {
 	defer gophClient.Close()
 
 	execCmd := "cd " + config.Repo.Path + " && " + config.Mode.Exec
-	cmd, err := gophClient.Command(execCmd, os.Args[1:]...)
+
+	session, err := gophClient.Client.NewSession()
 	if err != nil {
-		log.Fatalf("创建命令失败: %v", err)
+		os.Exit(1)
 	}
+	defer session.Close()
+	session.Stdin = os.Stdin
+	session.Stdout = os.Stdout
+	session.Stderr = os.Stderr
 
-	// 同步
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	// 检查当前终端是否为交互式终端
+	isTty := term.IsTerminal(int(os.Stdin.Fd()))
+	if isTty {
+		// 对于交互式终端，创建一个支持PTY的SSH会话
+		fd := int(os.Stdin.Fd())
+		oldState, err := term.MakeRaw(fd)
+		if err != nil {
+			os.Exit(1)
+		}
+		defer term.Restore(fd, oldState)
 
-	// 执行命令并获取错误返回值
-	err = cmd.Run()
+		width, height, err := term.GetSize(fd)
+		if err != nil {
+			os.Exit(1)
+		}
+
+		err = session.RequestPty("xterm-256color", height, width, ssh.TerminalModes{
+			ssh.ECHO:          1,
+			ssh.TTY_OP_ISPEED: 14400,
+			ssh.TTY_OP_OSPEED: 14400,
+		})
+		if err != nil {
+			os.Exit(1)
+		}
+	}
+	err = session.Run(execCmd + " " + strings.Join(os.Args[1:], " "))
 	if err != nil {
-		// 命令执行失败时返回错误码
 		os.Exit(1)
 	}
 }

@@ -1,5 +1,8 @@
 # gits
+
 Git over SSH.
+
+Anything over SSH.
 
 ## Usage
 
@@ -14,7 +17,13 @@ Host server1
     IdentityFile ~/.ssh/id_ed25519
 ```
 
-2. Create `config.toml` in a empty directory as a git repo.
+2. Connect to the server at first to make sure the server is authorized.
+
+```bash
+ssh server1
+```
+
+3. Create `config.toml` in a empty directory as a git repo.
 
 ```bash
 mkdir -p ~/work/llamacpp
@@ -22,7 +31,7 @@ cd ~/work/llamacpp
 touch config.toml
 ```
 
-3. Edit `config.toml` as below:
+4. Edit `config.toml` as below:
 
 ```toml
 [ssh]
@@ -36,13 +45,13 @@ Path = "~/work/llamacpp"
 
 > If not provide `config.toml`, `gits` will call `git` directly.
 
-4. Run `gits` in the repo directory.
+5. Run `gits` in the repo directory.
 
 ```bash
 gits
 ```
 
-5. Done. It just like `git` command in local.
+6. Done. It just like `git` command in local.
 
 ## Advanced
 
