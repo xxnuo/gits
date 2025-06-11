@@ -17,7 +17,7 @@ Host server1
     IdentityFile ~/.ssh/id_ed25519
 ```
 
-2. Connect to the server at first to make sure the server is authorized.
+2. Connect to the server once at first to make sure the server is authorized.
 
 ```bash
 ssh server1
