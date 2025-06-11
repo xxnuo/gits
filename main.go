@@ -18,8 +18,8 @@ var (
 
 func main() {
 	var err error
-	cmd := strings.Join(os.Args[1:], " ")
-	if cmd == "" {
+	gitCmd := strings.Join(os.Args[1:], " ")
+	if gitCmd == "" {
 		return
 	}
 
@@ -40,13 +40,19 @@ func main() {
 	defer gophClient.Close()
 
 	// 如果命令不是以git开头，自动添加git前缀
-	if !strings.HasPrefix(cmd, "git") {
-		cmd = "git " + cmd
+	if !strings.HasPrefix(gitCmd, "git") {
+		gitCmd = "git " + gitCmd
 	}
 
-	out, err := gophClient.Run(cmd)
+	gitCmd = "cd " + config.Repo.Path + " && " + gitCmd
+
+	cmd, err := gophClient.Command(gitCmd)
+
+	err = cmd.Run()
 	if err != nil {
 		log.Fatalf("执行命令失败: %v", err)
 	}
-	fmt.Println(string(out))
+
+	fmt.Println(cmd.Stdout)
+
 }
