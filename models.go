@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/BurntSushi/toml"
+	"github.com/melbahja/goph"
 )
 
 // Config 结构体定义配置文件格式
@@ -14,18 +15,19 @@ type Config struct {
 
 // SSHConfig 定义SSH连接配置
 type SSHConfig struct {
-	// ssh connection settings
-	IP             string `toml:"ip"`
+	Host string `toml:"host"`
+	// override ssh config file settings
+	Hostname       string `toml:"hostname"`
 	User           string `toml:"user"`
 	Port           uint   `toml:"port"`
 	Password       string `toml:"password"`
-	Key            string `toml:"key"`
+	IdentityFile   string `toml:"identityfile"`
+	Passphrase     string `toml:"passphrase"`
 	ControlMaster  string `toml:"controlmaster"`
 	ControlPath    string `toml:"controlpath"`
 	ControlPersist string `toml:"controlpersist"`
-	// ssh config file settings
-	Path string `toml:"path"`
-	Name string `toml:"name"`
+	// internal settings
+	HasAgent bool
 }
 
 // RepoConfig 定义仓库配置
@@ -57,6 +59,9 @@ func LoadConfig(configPath string) (*Config, error) {
 		return nil, err
 	}
 
+	// 处理内部设置
+	config.SSH.HasAgent = goph.HasAgent()
+
 	// 验证仓库配置
 	if err = ValidateRepoConfig(&config.Repo); err != nil {
 		return nil, err
@@ -70,18 +75,10 @@ func NormalizeConfigPaths(config *Config) error {
 	var err error
 
 	// 处理 SSH 密钥路径
-	if config.SSH.Key != "" {
-		config.SSH.Key, err = NormalizePath(config.SSH.Key)
+	if config.SSH.IdentityFile != "" {
+		config.SSH.IdentityFile, err = NormalizePath(config.SSH.IdentityFile)
 		if err != nil {
 			return errors.New("无法解析密钥路径: " + err.Error())
-		}
-	}
-
-	// 处理 SSH 配置文件路径
-	if config.SSH.Path != "" {
-		config.SSH.Path, err = NormalizePath(config.SSH.Path)
-		if err != nil {
-			return errors.New("无法解析SSH配置文件路径: " + err.Error())
 		}
 	}
 
@@ -90,20 +87,12 @@ func NormalizeConfigPaths(config *Config) error {
 
 // ValidateSSHConfig 验证SSH配置的有效性
 func ValidateSSHConfig(sshConfig *SSHConfig) error {
-	if sshConfig.Path != "" {
-		// 使用 SSH 配置文件模式
-		if sshConfig.Name == "" {
-			return errors.New("SSH 服务器名称不能为空")
+	if sshConfig.Host == "" {
+		if sshConfig.Hostname == "" {
+			return errors.New("SSH 服务器名称或地址不能同时为空")
 		}
 	} else {
-		// 使用直接配置模式
-		if sshConfig.IP == "" {
-			return errors.New("SSH IP 不能为空")
-		}
-		if sshConfig.User == "" {
-			return errors.New("SSH 用户名不能为空")
-		}
-		if sshConfig.Key == "" && sshConfig.Password == "" {
+		if sshConfig.IdentityFile == "" && sshConfig.Password == "" {
 			return errors.New("SSH 密钥或密码不能同时为空")
 		}
 	}

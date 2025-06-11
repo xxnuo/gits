@@ -1,8 +1,8 @@
 package main
 
 import (
-	"flag"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/melbahja/goph"
@@ -13,31 +13,33 @@ var (
 	config     *Config
 )
 
-func init() {
-	flag.StringVar(&configPath, "c", "./config.toml", "配置文件路径, 默认使用当前目录下的 config.toml 文件")
-}
-
 func main() {
-	flag.Parse()
-
-	cmd := flag.Args()[0]
-
-	println(cmd)
+	cmd := strings.Join(os.Args[1:], " ")
+	if cmd == "" {
+		return
+	}
 
 	config, err := LoadConfig(configPath)
 	if err != nil {
 		log.Fatalf("无法加载配置文件 %s: %v", configPath, err)
 	}
 
-	// 创建SSH连接
+	hostKeyCallback, err := goph.DefaultKnownHosts()
+	if err != nil {
+		log.Fatalf("获取默认 known_hosts 文件失败: %v", err)
+	}
+
+	auth, err := AuthHost(config.SSH.HasAgent, config.SSH.Password, config.SSH.IdentityFile, config.SSH.Passphrase)
+	if err != nil {
+		log.Fatalf("认证失败: %v", err)
+	}
+
 	client, err := goph.NewConn(&goph.Config{
 		User:     config.SSH.User,
-		Addr:     config.SSH.IP,
-		Port:     config.SSH.Port,
-		Auth:     goph.Password(config.SSH.Password),
-		Callback: VerifyHost,
+		Addr:     config.SSH.Hostname,
+		Auth:     auth,
+		Callback: hostKeyCallback,
 	})
-
 	if err != nil {
 		log.Fatalf("连接失败: %v", err)
 	}
