@@ -10,6 +10,7 @@ import (
 type Config struct {
 	SSH  SSHConfig  `toml:"ssh"`
 	Repo RepoConfig `toml:"repo"`
+	Mode ModeConfig `toml:"mode"`
 }
 
 // SSHConfig 定义SSH连接配置
@@ -20,6 +21,11 @@ type SSHConfig struct {
 // RepoConfig 定义仓库配置
 type RepoConfig struct {
 	Path string `toml:"path"`
+}
+
+// ModeConfig 定义模式配置
+type ModeConfig struct {
+	Exec string `toml:"exec"`
 }
 
 // LoadConfig 从配置文件加载配置
@@ -46,6 +52,11 @@ func LoadConfig(configPath string) (*Config, error) {
 		return nil, err
 	}
 
+	// 验证模式配置
+	if err = ValidateModeConfig(&config.Mode); err != nil {
+		return nil, err
+	}
+
 	return &config, nil
 }
 
@@ -62,6 +73,15 @@ func ValidateSSHConfig(sshConfig *SSHConfig) error {
 func ValidateRepoConfig(repoConfig *RepoConfig) error {
 	if repoConfig.Path == "" {
 		return errors.New("仓库路径不能为空")
+	}
+
+	return nil
+}
+
+// ValidateModeConfig 验证模式配置的有效性
+func ValidateModeConfig(modeConfig *ModeConfig) error {
+	if modeConfig.Exec == "" {
+		modeConfig.Exec = "git"
 	}
 
 	return nil

@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"os"
-	"strings"
+	"os/exec"
 
 	"github.com/melbahja/goph"
 )
@@ -17,14 +17,33 @@ var (
 
 func main() {
 	var err error
-	gitCmd := strings.Join(os.Args[1:], " ")
-	if gitCmd == "" {
+	// 如果config.toml不存在，直接执行git命令
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		pwd, err := os.Getwd()
+		if err != nil {
+			os.Exit(1)
+		}
+
+		cmd := exec.Command("git", os.Args[1:]...)
+		cmd.Dir = pwd
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		err = cmd.Run()
+		if err != nil {
+			// 命令执行失败时返回错误码
+			if exitErr, ok := err.(*exec.ExitError); ok {
+				os.Exit(exitErr.ExitCode())
+			}
+			os.Exit(1)
+		}
 		return
 	}
 
 	config, err = LoadConfig(configPath)
 	if err != nil {
-		log.Fatalf("无法加载配置文件 %s: %v", configPath, err)
+		log.Fatalf("Failed to load config file %s: %v", configPath, err)
 	}
 
 	gophConfig, err = GetHostConfig(config.SSH.Host)
@@ -38,14 +57,8 @@ func main() {
 	}
 	defer gophClient.Close()
 
-	// 如果命令不是以git开头，自动添加git前缀
-	if !strings.HasPrefix(gitCmd, "git") {
-		gitCmd = "git " + gitCmd
-	}
-
-	gitCmd = "cd " + config.Repo.Path + " && " + gitCmd
-
-	cmd, err := gophClient.Command(gitCmd)
+	execCmd := "cd " + config.Repo.Path + " && " + config.Mode.Exec
+	cmd, err := gophClient.Command(execCmd, os.Args[1:]...)
 	if err != nil {
 		log.Fatalf("创建命令失败: %v", err)
 	}

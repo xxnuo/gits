@@ -1,7 +1,7 @@
 # gits
 Git over SSH.
 
-# Usage Sample
+## Usage
 
 1. Make sure `~/.ssh/config` contains your server config.
 
@@ -10,11 +10,11 @@ Git over SSH.
 ```
 Host server1
     HostName 192.168.1.100
-    User root
+    User user1
     IdentityFile ~/.ssh/id_ed25519
 ```
 
-1. Create `config.toml` in a empty directory as a git repo.
+2. Create `config.toml` in a empty directory as a git repo.
 
 ```bash
 mkdir -p ~/work/llamacpp
@@ -34,10 +34,28 @@ Host = "server1"
 Path = "~/work/llamacpp"
 ```
 
+> If not provide `config.toml`, `gits` will call `git` directly.
+
 4. Run `gits` in the repo directory.
 
 ```bash
 gits
 ```
 
-5. Run `gits` with arguments.
+5. Done. It just like `git` command in local.
+
+## Advanced
+
+1. If you want to use other command in remote server, you can set `mode` to the command in `config.toml`.
+
+```toml
+[mode]
+# default is "git"
+exec = "uname"
+```
+
+Run `gits` got `uname` command in remote server.
+
+```
+Linux
+```

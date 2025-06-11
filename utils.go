@@ -1,13 +1,9 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"golang.org/x/term"
 )
 
 // NormalizePath 规范化路径
@@ -42,15 +38,4 @@ func NormalizePath(path string) (string, error) {
 	}
 
 	return cleanPath, nil
-}
-
-// AskPass 询问密码
-func AskPass(msg string) string {
-	fmt.Print(msg)
-	pass, err := term.ReadPassword(0)
-	if err != nil {
-		log.Fatal("读取密码失败:", err)
-	}
-	fmt.Println("")
-	return strings.TrimSpace(string(pass))
 }
