@@ -1,7 +1,0 @@
-[ssh]
-# host name in ssh config file
-Host = "server1"
-
-[repo]
-# path to the repository on the remote server
-Path = "~/work/llamacpp"

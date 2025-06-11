@@ -54,5 +54,11 @@ func main() {
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Run()
+
+	// 执行命令并获取错误返回值
+	err = cmd.Run()
+	if err != nil {
+		// 命令执行失败时返回错误码
+		os.Exit(1)
+	}
 }
