@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -47,12 +46,13 @@ func main() {
 	gitCmd = "cd " + config.Repo.Path + " && " + gitCmd
 
 	cmd, err := gophClient.Command(gitCmd)
-
-	err = cmd.Run()
 	if err != nil {
-		log.Fatalf("执行命令失败: %v", err)
+		log.Fatalf("创建命令失败: %v", err)
 	}
 
-	fmt.Println(cmd.Stdout)
-
+	// 同步
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Run()
 }

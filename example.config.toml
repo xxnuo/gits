@@ -1,27 +1,7 @@
-# ssh connection settings
 [ssh]
-# ip address of the server
-ip = "192.168.1.100"
-# user name of the server
-user = "root"
-# port number of the server
-port = 22
-# password of the server
-password = ""
-# path to the private key
-key = "~/.ssh/id_ed25519"
-# multiplexing settings
-controlmaster = "auto"
-controlpath = "~/.ssh/%r@%h:%p.socket"
-controlpersist = "10m"
+# host name in ssh config file
+Host = "server1"
 
-# use ssh config file (optional, if provided, the above ssh settings will be ignored)
-# ssh config path
-path = "~/.ssh/config"
-# ssh config server name
-name = "example"
-
-# repository settings
 [repo]
 # path to the repository on the remote server
-path = "~/code"
+Path = "~/work/llamacpp"
